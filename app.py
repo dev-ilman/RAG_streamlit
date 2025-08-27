@@ -19,7 +19,7 @@ from bs4 import BeautifulSoup
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\tesseract.exe"
 
 CONFIG_FILE = "config.yaml"
-GOOGLE_API_KEY = "AIzaSyCSaaJ5UpMN8yyioYJ0UK17-t_BS-E_-6Y"
+GOOGLE_API_KEY = ""
 
 st.title("Basic RAG")
 
