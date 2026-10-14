@@ -1,0 +1,54 @@
+# Single-host production stack (used by the AWS EC2 free-tier deployment).
+# The frontend image serves the built SPA through nginx and reverse-proxies
+# /api to the backend, keeping everything same-origin.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    image: ${BACKEND_IMAGE:-rag-platform-backend:latest}
+    build:
+      context: ./backend
+      target: runtime
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_HOST: db
+      ENVIRONMENT: production
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - backend-data:/app/data
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"
+    expose:
+      - "8000"
+
+  frontend:
+    image: ${FRONTEND_IMAGE:-rag-platform-frontend:latest}
+    build:
+      context: ./frontend
+      target: runtime
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:8080"
+
+volumes:
+  postgres-data:
+  backend-data:
