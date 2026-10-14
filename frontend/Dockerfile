@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ---- dev: Vite dev server with HMR ---------------------------------------
-FROM node:22-alpine AS dev
+FROM node:26-alpine AS dev
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
@@ -10,7 +10,7 @@ EXPOSE 5173
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
 
 # ---- build: type-check and bundle ----------------------------------------
-FROM node:22-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
